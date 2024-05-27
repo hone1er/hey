@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 
 import NotificationIcon from '@components/Notification/NotificationIcon';
+import { CircuitBoardIcon } from '@components/SkateLens/NavIcon';
 import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { STATIC_IMAGES_URL } from '@hey/data/constants';
 import cn from '@hey/ui/cn';
@@ -59,6 +60,16 @@ const Navbar: FC = () => {
           name="Explore"
           url="/explore"
         />
+        <NavItem
+          current={pathname === '/skateLens'}
+          name="SkateLens"
+          url="/skateLens"
+        />
+        <NavItem
+          current={pathname === '/newSpot'}
+          name="New Spot"
+          url="/newSpot"
+        />
         <MoreNavItems />
       </>
     );
@@ -85,13 +96,7 @@ const Navbar: FC = () => {
               className="hidden rounded-full outline-offset-8 md:block"
               href="/"
             >
-              <img
-                alt="Logo"
-                className="size-8"
-                height={32}
-                src={`${STATIC_IMAGES_URL}/app-icon/${appIcon}.png`}
-                width={32}
-              />
+              <CircuitBoardIcon />
             </Link>
             <div className="hidden sm:ml-6 md:block">
               <div className="flex items-center space-x-4">

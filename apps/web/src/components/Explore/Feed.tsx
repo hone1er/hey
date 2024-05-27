@@ -98,9 +98,9 @@ const Feed: FC<FeedProps> = ({
   }
 
   return (
-    <Card>
+    <Card className="w-full">
       <Virtuoso
-        className="virtual-divider-list-window"
+        className="virtual-divider-list-window "
         computeItemKey={(index, publication) => `${publication.id}-${index}`}
         data={publications}
         endReached={onEndReached}
