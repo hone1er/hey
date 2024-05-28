@@ -17,7 +17,7 @@ export default function MyMap({ ...props }) {
   return (
     <MapContainer
       center={position}
-      className="h-96 w-96 rounded-lg rounded-t-none "
+      className="h-96 w-96 rounded-xl rounded-t-none "
       zoom={zoom}
     >
       <TileLayer

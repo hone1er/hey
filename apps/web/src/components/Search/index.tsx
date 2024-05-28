@@ -51,6 +51,7 @@ const Search: NextPage = () => {
           <Profiles query={query.q as string} />
         ) : null}
         {query.type === 'pubs' ? (
+          // @ts-ignore
           <Publications query={query.q as string} />
         ) : null}
       </GridItemEight>

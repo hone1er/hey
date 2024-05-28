@@ -45,7 +45,7 @@ import useHandleWrongNetwork from './useHandleWrongNetwork';
 
 interface CreatePublicationProps {
   commentOn?: AnyPublication;
-  onCompleted: (status?: any) => void;
+  onCompleted: (status?: any, id?: string) => void;
   onError: (error: any) => void;
   quoteOn?: AnyPublication;
 }
@@ -91,9 +91,10 @@ const useCreatePublication = ({
           : OptmisticPublicationType.Post
     };
   };
-
+  const { writeContractAsync: writeSpotContractAsync } = useWriteContract();
   const [getPublication] = usePublicationLazyQuery({
     onCompleted: (data) => {
+      console.log('🚀 ~ data:', data);
       if (data?.publication) {
         cache.modify({
           fields: {
@@ -117,6 +118,7 @@ const useCreatePublication = ({
         decrementLensHubOnchainSigNonce();
       },
       onSuccess: (hash: string) => {
+        console.log('🚀 ~ hash:', hash);
         addTransaction(generateOptimisticPublication({ txHash: hash }));
         incrementLensHubOnchainSigNonce();
         onCompleted();
@@ -138,7 +140,7 @@ const useCreatePublication = ({
     onCompleted: ({ broadcastOnMomoka }) => {
       onCompleted(broadcastOnMomoka.__typename);
       if (broadcastOnMomoka.__typename === 'CreateMomokaPublicationResult') {
-        onCompleted();
+        onCompleted(broadcastOnMomoka.id);
         push(`/posts/${broadcastOnMomoka.id}`);
       }
     },
@@ -261,9 +263,9 @@ const useCreatePublication = ({
   // Momoka mutations
   const [postOnMomoka] = usePostOnMomokaMutation({
     onCompleted: ({ postOnMomoka }) => {
-      onCompleted(postOnMomoka.__typename);
-
       if (postOnMomoka.__typename === 'CreateMomokaPublicationResult') {
+        onCompleted(postOnMomoka.__typename, postOnMomoka.id);
+
         push(`/posts/${postOnMomoka.id}`);
       }
     },
@@ -272,9 +274,8 @@ const useCreatePublication = ({
 
   const [commentOnMomoka] = useCommentOnMomokaMutation({
     onCompleted: ({ commentOnMomoka }) => {
-      onCompleted(commentOnMomoka.__typename);
-
       if (commentOnMomoka.__typename === 'CreateMomokaPublicationResult') {
+        onCompleted(commentOnMomoka.__typename, commentOnMomoka.id);
         getPublication({
           variables: { request: { forId: commentOnMomoka.id } }
         });
@@ -285,9 +286,8 @@ const useCreatePublication = ({
 
   const [quoteOnMomoka] = useQuoteOnMomokaMutation({
     onCompleted: ({ quoteOnMomoka }) => {
-      onCompleted(quoteOnMomoka.__typename);
-
       if (quoteOnMomoka.__typename === 'CreateMomokaPublicationResult') {
+        onCompleted(quoteOnMomoka.__typename, quoteOnMomoka.id);
         push(`/posts/${quoteOnMomoka.id}`);
       }
     },

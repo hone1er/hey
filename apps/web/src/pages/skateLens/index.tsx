@@ -1,5 +1,8 @@
+import NewSkatePost from '@components/Composer/Post/NewSkatePost';
 import Publications from '@components/Search/Publications';
-import { GridItemEight, GridItemFour, GridLayout } from '@hey/ui';
+import PublicationsById from '@components/Search/PublicationsById';
+import { RectangleStackIcon } from '@heroicons/react/24/outline';
+import { EmptyState, GridItemEight, GridItemFour, GridLayout } from '@hey/ui';
 import cn from '@hey/ui/cn';
 import dynamic from 'next/dynamic';
 import { DM_Sans } from 'next/font/google';
@@ -22,10 +25,11 @@ export default function SpotsPage() {
     name: 'the bricks',
     tags: ['ledges', 'curved ledge', 'manual pad']
   });
-  const [spotQuery, setSpotQuery] = useState(['skateboarding']);
+  const [spotQuery, setSpotQuery] = useState<string[]>([]);
   const [currentSpotId, setCurrentSpotId] = useState<null | number>(null);
   const [spotMetadata, setSpotMetadata] = useState<Spot[]>([]);
   console.log('🚀 ~ SpotsPage ~ spotMetadata:', spotMetadata);
+
   const config = useConfig();
 
   const { data: spotIds } = useReadContracts({
@@ -67,13 +71,9 @@ export default function SpotsPage() {
         try {
           const metadataPromises = tokenURIs.map(async (uri) => {
             const ipfsHash = (uri.result as string).split('ipfs://')[1];
-            console.log('🚀 ~ metadataPromises ~ ipfsHash:', ipfsHash);
+
             const fetchUrl = `https://ipfs.io/ipfs/${ipfsHash}?filename=spot_metadata.json`;
-            // const helia = await createHelia();
-            // const j = json(helia);
-            // const data = await j.get(ipfsHash);
-            // console.log('🚀 ~ metadataPromises ~ data:', data);
-            console.log('Fetching URL:', fetchUrl);
+
             const response = await fetch(fetchUrl, {
               headers: {
                 Accept: 'application/json',
@@ -90,7 +90,7 @@ export default function SpotsPage() {
             // Try to parse JSON response
             try {
               const data = await response.json();
-              console.log('Fetched metadata:', data);
+
               return data;
             } catch (jsonError) {
               console.error('Error parsing JSON:', jsonError);
@@ -107,7 +107,6 @@ export default function SpotsPage() {
             // @ts-ignore
             .map((result) => result.value);
 
-          console.log('Filtered metadata:', filteredMetadata);
           setSpotMetadata(filteredMetadata as Spot[]);
         } catch (error) {
           console.error('Error fetching token URIs:', error);
@@ -131,11 +130,26 @@ export default function SpotsPage() {
     <GridLayout className={anton.className}>
       <GridItemEight className="space-y-5">
         {/* @ts-ignore */}
-        <Publications query={spotQuery as string} />
+        {spotQuery.length > 0 ? (
+          <>
+            <NewSkatePost spotName={currentPosition.name} />
+            <PublicationsById query={spotQuery} />
+          </>
+        ) : currentPosition.name ? (
+          <>
+            <NewSkatePost spotName={currentPosition.name} />
+            <EmptyState
+              icon={<RectangleStackIcon className="size-8" />}
+              message="No posts yet!"
+            />
+          </>
+        ) : (
+          <Publications query="skateboarding" />
+        )}
       </GridItemEight>
       <GridItemFour>
         <div className="sticky top-10">
-          <div className="relative z-40 h-96  w-80 min-w-80 px-4 transition-all duration-300 hover:scale-105">
+          <div className="relative z-40 h-96 w-80  min-w-80 rounded-xl px-4 transition-all duration-300 hover:scale-105">
             <Map
               onClick={(spot: Spot) => {
                 setCurrentPosition(spot);
@@ -165,32 +179,43 @@ export default function SpotsPage() {
                 anton.className
               )}
             >
-              {spotMetadata?.map((spot: Spot, index) => (
-                <button
-                  className={cn(
-                    `${currentSpotId === index ? 'h-[200px]' : 'h-fit'} w-full rounded-xl border bg-gray-50 p-4 shadow-xl transition-all duration-300 hover:scale-[1.05] hover:bg-gray-100 hover:shadow-2xl`,
-                    anton.className
-                  )}
-                  key={index}
-                  onClick={() => {
-                    setCurrentPosition(spot);
-                    // @ts-ignore
-                    setSpotQuery(spotData[index].result.posts);
-                    setCurrentSpotId(index);
-                  }}
-                >
-                  <div className="flex h-10 w-full flex-col justify-center gap-4">
-                    <div className="flex flex-col items-center gap-1">
-                      <h2 className="text-xl font-bold ">{spot?.name}</h2>
+              {spotMetadata?.map((spot: Spot, index) => {
+                if (index > 0) {
+                  return null;
+                }
+                return (
+                  <button
+                    className={cn(
+                      `${currentSpotId === index ? 'h-[200px]' : 'h-fit'} w-full rounded-xl border bg-gray-50 p-4 shadow-xl transition-all duration-300 hover:scale-[1.05] hover:bg-gray-100 hover:shadow-2xl`,
+                      anton.className
+                    )}
+                    key={index}
+                    onClick={() => {
+                      setCurrentPosition(spot);
+                      // @ts-ignore
+                      setSpotQuery(spotData[index].result.posts);
+                      setCurrentSpotId(index);
+                      // add Spot name to the URL
+                      window.history.pushState(
+                        {},
+                        spot.name,
+                        `?spot=${spot.name.split(' ').join('_').toLowerCase()}`
+                      );
+                    }}
+                  >
+                    <div className="flex h-10 w-full flex-col justify-center gap-4">
+                      <div className="flex flex-col items-center gap-1">
+                        <h2 className="text-xl font-bold ">{spot?.name}</h2>
+                      </div>
+                      {currentSpotId === index ? (
+                        <p className="whitespace-break-spaces ">
+                          {spot.description}
+                        </p>
+                      ) : null}
                     </div>
-                    {currentSpotId === index ? (
-                      <p className="whitespace-break-spaces ">
-                        {spot.description}
-                      </p>
-                    ) : null}
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

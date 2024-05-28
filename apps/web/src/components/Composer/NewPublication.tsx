@@ -35,6 +35,7 @@ import { useUnmountEffect } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
+import { SPOT_NFT_ABI } from 'src/constants';
 import useCreatePoll from 'src/hooks/useCreatePoll';
 import useCreatePublication from 'src/hooks/useCreatePublication';
 import usePublicationMetadata from 'src/hooks/usePublicationMetadata';
@@ -60,6 +61,7 @@ import { useProfileRestriction } from 'src/store/non-persisted/useProfileRestric
 import { useProStore } from 'src/store/non-persisted/useProStore';
 import { useReferenceModuleStore } from 'src/store/non-persisted/useReferenceModuleStore';
 import { useProfileStore } from 'src/store/persisted/useProfileStore';
+import { useWriteContract } from 'wagmi';
 
 import LivestreamEditor from './Actions/LivestreamSettings/LivestreamEditor';
 import PollEditor from './Actions/PollSettings/PollEditor';
@@ -213,14 +215,23 @@ const NewPublication: FC<NewPublicationProps> = ({ publication }) => {
     setIsLoading(false);
     errorToast(error);
   };
+  const { writeContractAsync } = useWriteContract();
 
-  const onCompleted = (
+  const onCompleted = async (
     __typename?:
       | 'CreateMomokaPublicationResult'
       | 'LensProfileManagerRelayError'
       | 'RelayError'
-      | 'RelaySuccess'
+      | 'RelaySuccess',
+    id?: string
   ) => {
+    await writeContractAsync({
+      abi: SPOT_NFT_ABI,
+      address: '0x6eDFd9699EacfFa7B4E5b2b1b740a7582C1f2273',
+      args: [1, id],
+      functionName: 'attachPost'
+    });
+
     if (
       __typename === 'RelayError' ||
       __typename === 'LensProfileManagerRelayError'
@@ -327,6 +338,7 @@ const NewPublication: FC<NewPublicationProps> = ({ publication }) => {
 
     try {
       setIsLoading(true);
+
       if (hasAudio) {
         setPublicationContentError('');
         const parsedData = AudioPublicationSchema.safeParse(audioPublication);
@@ -385,7 +397,9 @@ const NewPublication: FC<NewPublicationProps> = ({ publication }) => {
       };
 
       const metadata = getMetadata({ baseMetadata });
+      console.log('🚀 ~ createPublication ~ metadata:', metadata);
       const arweaveId = await uploadToArweave(metadata);
+      console.log('🚀 ~ createPublication ~ publication?.id:', publication?.id);
 
       // Payload for the open action module
       const openActionModules = [];
