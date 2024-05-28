@@ -1,16 +1,13 @@
-import type { AnyPublication, PublicationSearchRequest } from '@hey/lens';
+import type { AnyPublication, PublicationsRequest } from '@hey/lens';
 import type { FC } from 'react';
 import type { StateSnapshot, VirtuosoHandle } from 'react-virtuoso';
 
 import SinglePublication from '@components/Publication/SinglePublication';
 import PublicationsShimmer from '@components/Shared/Shimmer/PublicationsShimmer';
 import { RectangleStackIcon } from '@heroicons/react/24/outline';
-import {
-  CustomFiltersType,
-  LimitType,
-  useSearchPublicationsQuery
-} from '@hey/lens';
+import { LimitType, usePublicationsQuery } from '@hey/lens';
 import { Card, EmptyState, ErrorMessage } from '@hey/ui';
+import { publicationId } from '@lens-protocol/react-web';
 import { useRef } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { useImpressionsStore } from 'src/store/non-persisted/useImpressionsStore';
@@ -19,7 +16,7 @@ import { useTipsStore } from 'src/store/non-persisted/useTipsStore';
 let virtuosoState: any = { ranges: [], screenTop: 0 };
 
 interface PublicationsProps {
-  query: string;
+  query: string[];
 }
 
 const Publications: FC<PublicationsProps> = ({ query }) => {
@@ -27,23 +24,31 @@ const Publications: FC<PublicationsProps> = ({ query }) => {
   const { fetchAndStoreTips } = useTipsStore();
   const virtuoso = useRef<VirtuosoHandle>(null);
 
+  const publicationIds = query.map((id: string) => publicationId(id));
   // Variables
-  const request: PublicationSearchRequest = {
+  const request: PublicationsRequest = {
     limit: LimitType.TwentyFive,
-    query,
-    where: { customFilters: [CustomFiltersType.Gardeners] }
+    where: {
+      publicationIds
+    }
   };
+  console.log('🚀 ~ request:', request);
 
-  const { data, error, fetchMore, loading } = useSearchPublicationsQuery({
-    onCompleted: async ({ searchPublications }) => {
-      const ids = searchPublications?.items?.map((p) => p.id) || [];
+  const { data, error, fetchMore, loading } = usePublicationsQuery({
+    onCompleted: async ({ publications }) => {
+      const ids = publications?.items?.map((p) => p.id as string) || [];
       await fetchAndStoreViews(ids);
       await fetchAndStoreTips(ids);
     },
-    variables: { request }
+    variables: {
+      request
+    }
   });
+  console.log('🚀 ~ data:', data?.publications.items);
+  console.log('🚀 ~ error:', error);
 
-  const search = data?.searchPublications;
+  const search = data?.publications;
+  console.log('🚀 ~ search:', search);
   const publications = search?.items as AnyPublication[];
   const pageInfo = search?.pageInfo;
   const hasMore = pageInfo?.next;
@@ -64,7 +69,7 @@ const Publications: FC<PublicationsProps> = ({ query }) => {
     const { data } = await fetchMore({
       variables: { request: { ...request, cursor: pageInfo?.next } }
     });
-    const ids = data?.searchPublications?.items?.map((p) => p.id) || [];
+    const ids = data?.publications?.items?.map((p) => p.id) || [];
     await fetchAndStoreViews(ids);
     await fetchAndStoreTips(ids);
   };

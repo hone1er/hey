@@ -25,7 +25,11 @@ export default function MyMap({ ...props }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {spots.map((pos: Spot, index) => (
-        <Marker autoPanOnFocus key={index} position={pos.coordinates}>
+        <Marker
+          autoPanOnFocus
+          key={index}
+          position={[pos.latitude, pos.longitude]}
+        >
           <Popup>
             <div className="flex flex-col gap-2">
               <p>Spot: {pos.name}</p>
