@@ -32,7 +32,6 @@ const PublicationsById: FC<PublicationsProps> = ({ query }) => {
       publicationIds
     }
   };
-  console.log('🚀 ~ request:', request);
 
   const { data, error, fetchMore, loading } = usePublicationsQuery({
     onCompleted: async ({ publications }) => {
@@ -44,11 +43,8 @@ const PublicationsById: FC<PublicationsProps> = ({ query }) => {
       request
     }
   });
-  console.log('🚀 ~ data:', data?.publications.items);
-  console.log('🚀 ~ error:', error);
 
   const search = data?.publications;
-  console.log('🚀 ~ search:', search);
   const publications = search?.items as AnyPublication[];
   const pageInfo = search?.pageInfo;
   const hasMore = pageInfo?.next;

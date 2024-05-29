@@ -33,6 +33,7 @@ import cn from '@hey/ui/cn';
 import { MetadataAttributeType } from '@lens-protocol/metadata';
 import { useUnmountEffect } from 'framer-motion';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { SPOT_NFT_ABI } from 'src/constants';
@@ -216,7 +217,9 @@ const NewPublication: FC<NewPublicationProps> = ({ publication }) => {
     errorToast(error);
   };
   const { writeContractAsync } = useWriteContract();
-
+  const { query } = useRouter();
+  const { spot } = query;
+  console.log('🚀 ~ spot:', spot);
   const onCompleted = async (
     __typename?:
       | 'CreateMomokaPublicationResult'
@@ -228,7 +231,7 @@ const NewPublication: FC<NewPublicationProps> = ({ publication }) => {
     await writeContractAsync({
       abi: SPOT_NFT_ABI,
       address: '0x6eDFd9699EacfFa7B4E5b2b1b740a7582C1f2273',
-      args: [1, id],
+      args: [parseInt(spot as string), id],
       functionName: 'attachPost'
     });
 

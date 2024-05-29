@@ -140,7 +140,7 @@ const useCreatePublication = ({
     onCompleted: ({ broadcastOnMomoka }) => {
       onCompleted(broadcastOnMomoka.__typename);
       if (broadcastOnMomoka.__typename === 'CreateMomokaPublicationResult') {
-        onCompleted(broadcastOnMomoka.id);
+        onCompleted(broadcastOnMomoka.__typename, broadcastOnMomoka.id);
         push(`/posts/${broadcastOnMomoka.id}`);
       }
     },
@@ -262,9 +262,9 @@ const useCreatePublication = ({
 
   // Momoka mutations
   const [postOnMomoka] = usePostOnMomokaMutation({
-    onCompleted: ({ postOnMomoka }) => {
+    onCompleted: async ({ postOnMomoka }) => {
       if (postOnMomoka.__typename === 'CreateMomokaPublicationResult') {
-        onCompleted(postOnMomoka.__typename, postOnMomoka.id);
+        await onCompleted(postOnMomoka.__typename, postOnMomoka.id);
 
         push(`/posts/${postOnMomoka.id}`);
       }

@@ -157,6 +157,11 @@ export default function SpotsPage() {
                   (spotData?.[spot?.id - 1]?.result as SpotNFTData)
                     ?.posts as string[]
                 );
+                window.history.pushState(
+                  {},
+                  spot.id.toString(),
+                  `?spot=${spot.id}`
+                );
               }}
               position={[currentPosition?.latitude, currentPosition?.longitude]}
               spots={spotMetadata ?? []}
@@ -198,8 +203,8 @@ export default function SpotsPage() {
                       // add Spot name to the URL
                       window.history.pushState(
                         {},
-                        spot.name,
-                        `?spot=${spot.name.split(' ').join('_').toLowerCase()}`
+                        spot.id.toString(),
+                        `?spot=${spot.id}`
                       );
                     }}
                   >
